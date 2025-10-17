@@ -25,12 +25,12 @@ func (service *Service) Register(email, password, userName string) (string, erro
 		return "", err
 	}
 
-	user := user.User{
+	user := &user.User{
 		UserName:       userName,
 		Email:          email,
 		HashedPassword: string(hashedPassword)}
 
-	_, err = service.Repository.Create(&user)
+	_, err = service.Repository.Create(user)
 	if err != nil {
 		return "", err
 	}
