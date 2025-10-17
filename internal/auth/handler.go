@@ -48,3 +48,30 @@ func (handler Handler) Register(ctx fiber.Ctx) error {
 	}
 	return ctx.Status(fiber.StatusOK).SendString("Successful")
 }
+
+func (handler *Handler) Login(ctx fiber.Ctx) error {
+	var request LoginRequest
+	err := ctx.Bind().JSON(&request)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	err = Validate.IsValid(request)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	_, err = handler.Service.Login(
+		request.Email,
+		request.Password)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return ctx.Status(fiber.StatusOK).SendString("Successful")
+
+}
