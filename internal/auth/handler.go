@@ -17,6 +17,7 @@ func NewAuthHandler(service *Service) *Handler {
 func (handler *Handler) RegisterRoutes(app *fiber.App) {
 	app.Get("/test", handler.Test)
 	app.Get("/register", handler.Register)
+	app.Get("/login", handler.Login)
 }
 func (handler *Handler) Test(ctx fiber.Ctx) error {
 	return ctx.SendString("HelloWorld")

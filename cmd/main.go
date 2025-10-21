@@ -2,12 +2,13 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"log"
 	"sportTrackerAPI/internal/auth"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/internal/user"
 	"sportTrackerAPI/pkg/db"
 )
+
+const HttpPort = ":8080"
 
 func main() {
 	app := fiber.New()
@@ -25,5 +26,9 @@ func main() {
 
 	//RegisterRoutes
 	authHandler.RegisterRoutes(app)
-	log.Fatal(app.Listen(":8080"))
+
+	err := app.Listen(HttpPort)
+	if err != nil {
+		panic(err)
+	}
 }
