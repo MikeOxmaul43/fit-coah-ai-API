@@ -22,7 +22,7 @@ func main() {
 	authService := auth.NewAuthService(userRepository)
 
 	//Handlers
-	authHandler := auth.NewAuthHandler(authService)
+	authHandler := auth.NewAuthHandler(authService, cfg)
 
 	//RegisterRoutes
 	authHandler.RegisterRoutes(app)

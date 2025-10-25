@@ -2,15 +2,23 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v3"
+	jwtLib "github.com/golang-jwt/jwt/v5"
+	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/pkg/Validate"
+	"sportTrackerAPI/pkg/jwt"
+	"time"
 )
 
 type Handler struct {
 	*Service
+	*config.Config
 }
 
-func NewAuthHandler(service *Service) *Handler {
-	handler := Handler{service}
+func NewAuthHandler(service *Service, config *config.Config) *Handler {
+	handler := Handler{
+		Service: service,
+		Config:  config,
+	}
 	return &handler
 }
 
@@ -47,7 +55,7 @@ func (handler Handler) Register(ctx fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	return ctx.Status(fiber.StatusOK).SendString("Successful")
+	return ctx.Status(fiber.StatusOK).JSON(RegisterResponse{Message: "Registration successful."})
 }
 
 func (handler *Handler) Login(ctx fiber.Ctx) error {
@@ -73,6 +81,18 @@ func (handler *Handler) Login(ctx fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	return ctx.Status(fiber.StatusOK).SendString("Successful")
+	expiredAt := time.Now().Add(24 * time.Hour)
+	claims := jwt.Claims{
+		Email:            request.Email,
+		RegisteredClaims: jwtLib.RegisteredClaims{ExpiresAt: jwtLib.NewNumericDate(expiredAt), IssuedAt: jwtLib.NewNumericDate(time.Now())},
+	}
+	token, err := jwt.NewJWT(handler.Config.Auth.Secret).Create(claims)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{Token: token, Expires: expiredAt})
 
 }

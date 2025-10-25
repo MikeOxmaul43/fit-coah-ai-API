@@ -7,11 +7,16 @@ import (
 )
 
 type Config struct {
-	Db DbСonfig
+	Db   DbСonfig
+	Auth AuthConfig
 }
 
 type DbСonfig struct {
 	Dsn string
+}
+
+type AuthConfig struct {
+	Secret string
 }
 
 func LoadConfig() *Config {
@@ -20,6 +25,7 @@ func LoadConfig() *Config {
 		log.Println("Error loading .env")
 	}
 	return &Config{
-		Db: DbСonfig{Dsn: os.Getenv("DSN")},
+		Db:   DbСonfig{Dsn: os.Getenv("DSN")},
+		Auth: AuthConfig{Secret: os.Getenv("SECRET")},
 	}
 }
