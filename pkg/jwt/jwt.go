@@ -27,7 +27,7 @@ func (j *JWT) Create(data Claims) (string, error) {
 func (j *JWT) Parse(t string) (bool, *Claims) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(t, claims, func(token *jwt.Token) (interface{}, error) {
-		return j.Secret, nil
+		return []byte(j.Secret), nil
 	})
 	if err != nil {
 		return false, nil

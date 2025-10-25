@@ -6,6 +6,7 @@ import (
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/pkg/Validate"
 	"sportTrackerAPI/pkg/jwt"
+	"sportTrackerAPI/pkg/middleware"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func NewAuthHandler(service *Service, config *config.Config) *Handler {
 }
 
 func (handler *Handler) RegisterRoutes(app *fiber.App) {
-	app.Get("/test", handler.Test)
+	app.Get("/test", middleware.AuthMiddleware(handler.Config), handler.Test)
 	app.Get("/register", handler.Register)
 	app.Get("/login", handler.Login)
 }
