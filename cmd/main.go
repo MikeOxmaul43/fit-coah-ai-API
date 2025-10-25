@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
 	"sportTrackerAPI/internal/auth"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/internal/user"
@@ -14,6 +15,11 @@ func main() {
 	app := fiber.New()
 	cfg := config.LoadConfig()
 	database := db.NewDb(cfg)
+
+	//Middlewares
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${ip} ${status} - ${method} ${path} ${latency}\n",
+	}))
 
 	//Repositories
 	userRepository := user.NewUserRepository(database)
