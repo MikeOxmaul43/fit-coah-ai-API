@@ -1,6 +1,9 @@
 package jwt
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"time"
+)
 
 type Claims struct {
 	Email string `json:"email"`
@@ -33,4 +36,27 @@ func (j *JWT) Parse(t string) (bool, *Claims) {
 		return false, nil
 	}
 	return token.Valid, claims
+}
+
+func GenerateTokens(secret, email string) (string, string, error) {
+	expiredAt := time.Now().Add(24 * time.Hour)
+	claims := Claims{
+		Email:            email,
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(expiredAt), IssuedAt: jwt.NewNumericDate(time.Now())},
+	}
+	accessToken, err := NewJWT(secret).Create(claims)
+	if err != nil {
+		return "", "", err
+	}
+
+	expiredAt = time.Now().Add(24 * 7 * time.Hour)
+	claims = Claims{
+		Email:            email,
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(expiredAt), IssuedAt: jwt.NewNumericDate(time.Now())},
+	}
+	refreshToken, err := NewJWT(secret).Create(claims)
+	if err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, nil
 }

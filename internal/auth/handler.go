@@ -2,12 +2,11 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v3"
-	jwtLib "github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/pkg/Validate"
 	"sportTrackerAPI/pkg/jwt"
 	"sportTrackerAPI/pkg/middleware"
-	"time"
 )
 
 type Handler struct {
@@ -27,6 +26,7 @@ func (handler *Handler) RegisterRoutes(app *fiber.App) {
 	app.Get("/test", middleware.AuthMiddleware(handler.Config), handler.Test)
 	app.Get("/register", handler.Register)
 	app.Get("/login", handler.Login)
+	app.Get("/refresh", handler.Refresh)
 }
 func (handler *Handler) Test(ctx fiber.Ctx) error {
 	return ctx.SendString("HelloWorld")
@@ -82,18 +82,35 @@ func (handler *Handler) Login(ctx fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	expiredAt := time.Now().Add(24 * time.Hour)
-	claims := jwt.Claims{
-		Email:            request.Email,
-		RegisteredClaims: jwtLib.RegisteredClaims{ExpiresAt: jwtLib.NewNumericDate(expiredAt), IssuedAt: jwtLib.NewNumericDate(time.Now())},
+
+	accessToken, refreshToken, err := jwt.GenerateTokens(handler.Config.Auth.Secret, request.Email)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
-	token, err := jwt.NewJWT(handler.Config.Auth.Secret).Create(claims)
+	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+
+}
+
+func (handler *Handler) Refresh(ctx fiber.Ctx) error {
+	var request RefreshRequest
+	err := ctx.Bind().JSON(&request)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{Token: token, Expires: expiredAt})
-
+	isValid, claims := jwt.NewJWT(handler.Config.Auth.Secret).Parse(request.RefreshToken)
+	if !isValid {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+	accessToken, refreshToken, err := jwt.GenerateTokens(handler.Config.Auth.Secret, claims.Email)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(RefreshResponse{AccessToken: accessToken, RefreshToken: refreshToken})
 }
