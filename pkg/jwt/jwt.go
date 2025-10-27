@@ -38,25 +38,25 @@ func (j *JWT) Parse(t string) (bool, *Claims) {
 	return token.Valid, claims
 }
 
-func GenerateTokens(secret, email string) (string, string, error) {
-	expiredAt := time.Now().Add(24 * time.Hour)
+func GenerateTokens(secret, email string) (accessToken string, refreshToken string, accessExp time.Time, refreshExp time.Time, err error) {
+	accessExp = time.Now().Add(24 * time.Hour)
 	claims := Claims{
 		Email:            email,
-		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(expiredAt), IssuedAt: jwt.NewNumericDate(time.Now())},
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(accessExp), IssuedAt: jwt.NewNumericDate(time.Now())},
 	}
-	accessToken, err := NewJWT(secret).Create(claims)
+	accessToken, err = NewJWT(secret).Create(claims)
 	if err != nil {
-		return "", "", err
+		return
 	}
 
-	expiredAt = time.Now().Add(24 * 7 * time.Hour)
+	refreshExp = time.Now().Add(24 * 7 * time.Hour)
 	claims = Claims{
 		Email:            email,
-		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(expiredAt), IssuedAt: jwt.NewNumericDate(time.Now())},
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(refreshExp), IssuedAt: jwt.NewNumericDate(time.Now())},
 	}
-	refreshToken, err := NewJWT(secret).Create(claims)
+	refreshToken, err = NewJWT(secret).Create(claims)
 	if err != nil {
-		return "", "", err
+		return
 	}
-	return accessToken, refreshToken, nil
+	return
 }

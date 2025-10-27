@@ -83,13 +83,18 @@ func (handler *Handler) Login(ctx fiber.Ctx) error {
 		})
 	}
 
-	accessToken, refreshToken, err := jwt.GenerateTokens(handler.Config.Auth.Secret, request.Email)
+	accessToken, refreshToken, accessExp, refreshExp, err := jwt.GenerateTokens(handler.Config.Auth.Secret, request.Email)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{
+		AccessToken:    accessToken,
+		RefreshToken:   refreshToken,
+		AccessExpires:  accessExp,
+		RefreshExpires: refreshExp,
+	})
 
 }
 
@@ -106,11 +111,16 @@ func (handler *Handler) Refresh(ctx fiber.Ctx) error {
 	if !isValid {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
-	accessToken, refreshToken, err := jwt.GenerateTokens(handler.Config.Auth.Secret, claims.Email)
+	accessToken, refreshToken, accessExp, refreshExp, err := jwt.GenerateTokens(handler.Config.Auth.Secret, claims.Email)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return ctx.Status(fiber.StatusOK).JSON(RefreshResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+	return ctx.Status(fiber.StatusOK).JSON(RefreshResponse{
+		AccessToken:    accessToken,
+		RefreshToken:   refreshToken,
+		AccessExpires:  accessExp,
+		RefreshExpires: refreshExp,
+	})
 }
