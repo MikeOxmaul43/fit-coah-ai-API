@@ -2,25 +2,20 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"net/http"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/pkg/Validate"
-	"sportTrackerAPI/pkg/jwt"
 	"sportTrackerAPI/pkg/middleware"
-	"time"
 )
 
 type Handler struct {
 	*Service
 	*config.Config
-	*Repository
 }
 
-func NewAuthHandler(service *Service, config *config.Config, repo *Repository) *Handler {
+func NewAuthHandler(service *Service, config *config.Config) *Handler {
 	handler := Handler{
-		Service:    service,
-		Config:     config,
-		Repository: repo,
+		Service: service,
+		Config:  config,
 	}
 	return &handler
 }
@@ -30,6 +25,7 @@ func (handler *Handler) RegisterRoutes(app *fiber.App) {
 	app.Get("/register", handler.Register)
 	app.Get("/login", handler.Login)
 	app.Get("/refresh", handler.Refresh)
+	app.Get("/logout", middleware.AuthMiddleware(handler.Config), handler.Logout)
 }
 func (handler *Handler) Test(ctx fiber.Ctx) error {
 	return ctx.SendString("HelloWorld")
@@ -77,33 +73,16 @@ func (handler *Handler) Login(ctx fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	_, err = handler.Service.Login(
+	response, err := handler.Service.Login(
 		request.Email,
-		request.Password)
+		request.Password,
+		handler.Config.Auth.Secret)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-
-	accessToken, refreshToken, accessExp, refreshExp, err := jwt.GenerateTokens(handler.Config.Auth.Secret, request.Email)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-	err = handler.Repository.Set(request.Email, refreshToken, time.Until(refreshExp))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{
-		AccessToken:    accessToken,
-		RefreshToken:   refreshToken,
-		AccessExpires:  accessExp,
-		RefreshExpires: refreshExp,
-	})
+	return ctx.Status(fiber.StatusOK).JSON(response)
 
 }
 
@@ -116,26 +95,22 @@ func (handler *Handler) Refresh(ctx fiber.Ctx) error {
 		})
 	}
 
-	isValid, claims := jwt.NewJWT(handler.Config.Auth.Secret).Parse(request.RefreshToken)
-	if !isValid {
-		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
-	}
-	accessToken, refreshToken, accessExp, refreshExp, err := jwt.GenerateTokens(handler.Config.Auth.Secret, claims.Email)
+	response, err := handler.Service.Refresh(request.RefreshToken, handler.Config.Auth.Secret)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	err = handler.Repository.Set(claims.Email, refreshToken, time.Until(refreshExp))
+	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (handler *Handler) Logout(ctx fiber.Ctx) error {
+	email := ctx.Locals("userEmail").(string)
+	err := handler.Service.Logout(email)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return ctx.Status(fiber.StatusOK).JSON(RefreshResponse{
-		AccessToken:    accessToken,
-		RefreshToken:   refreshToken,
-		AccessExpires:  accessExp,
-		RefreshExpires: refreshExp,
-	})
+	return ctx.SendStatus(fiber.StatusNoContent)
 }

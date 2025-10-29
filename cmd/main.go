@@ -25,13 +25,12 @@ func main() {
 
 	//Repositories
 	userRepository := user.NewUserRepository(database)
-	authRepository := auth.NewAuthRepository(redisDataBase)
+	authRedisRepository := auth.NewAuthRepository(redisDataBase)
 
 	//Services
-	authService := auth.NewAuthService(userRepository)
-
+	authService := auth.NewAuthService(userRepository, authRedisRepository)
 	//Handlers
-	authHandler := auth.NewAuthHandler(authService, cfg, authRepository)
+	authHandler := auth.NewAuthHandler(authService, cfg)
 
 	//RegisterRoutes
 	authHandler.RegisterRoutes(app)
