@@ -7,17 +7,20 @@ import (
 	"sportTrackerAPI/pkg/Validate"
 	"sportTrackerAPI/pkg/jwt"
 	"sportTrackerAPI/pkg/middleware"
+	"time"
 )
 
 type Handler struct {
 	*Service
 	*config.Config
+	*Repository
 }
 
-func NewAuthHandler(service *Service, config *config.Config) *Handler {
+func NewAuthHandler(service *Service, config *config.Config, repo *Repository) *Handler {
 	handler := Handler{
-		Service: service,
-		Config:  config,
+		Service:    service,
+		Config:     config,
+		Repository: repo,
 	}
 	return &handler
 }
@@ -89,6 +92,12 @@ func (handler *Handler) Login(ctx fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	err = handler.Repository.Set(request.Email, refreshToken, time.Until(refreshExp))
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	return ctx.Status(fiber.StatusOK).JSON(LoginResponse{
 		AccessToken:    accessToken,
 		RefreshToken:   refreshToken,
@@ -112,6 +121,12 @@ func (handler *Handler) Refresh(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 	accessToken, refreshToken, accessExp, refreshExp, err := jwt.GenerateTokens(handler.Config.Auth.Secret, claims.Email)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	err = handler.Repository.Set(claims.Email, refreshToken, time.Until(refreshExp))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),

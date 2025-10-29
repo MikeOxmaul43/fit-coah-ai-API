@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Db   DbСonfig
 	Auth AuthConfig
+	Rdb  RdbConfig
 }
 
 type DbСonfig struct {
@@ -17,6 +18,9 @@ type DbСonfig struct {
 
 type AuthConfig struct {
 	Secret string
+}
+type RdbConfig struct {
+	Address string
 }
 
 func LoadConfig() *Config {
@@ -27,5 +31,6 @@ func LoadConfig() *Config {
 	return &Config{
 		Db:   DbСonfig{Dsn: os.Getenv("DSN")},
 		Auth: AuthConfig{Secret: os.Getenv("SECRET")},
+		Rdb:  RdbConfig{Address: os.Getenv("REDIS")},
 	}
 }

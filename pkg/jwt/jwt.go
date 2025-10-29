@@ -39,7 +39,7 @@ func (j *JWT) Parse(t string) (bool, *Claims) {
 }
 
 func GenerateTokens(secret, email string) (accessToken string, refreshToken string, accessExp time.Time, refreshExp time.Time, err error) {
-	accessExp = time.Now().Add(24 * time.Hour)
+	accessExp = time.Now().Add(1 * time.Hour)
 	claims := Claims{
 		Email:            email,
 		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(accessExp), IssuedAt: jwt.NewNumericDate(time.Now())},

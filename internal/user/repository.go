@@ -1,7 +1,7 @@
 package user
 
 import (
-	pkg "sportTrackerAPI/pkg/db"
+	pkg "sportTrackerAPI/db"
 )
 
 type Repository struct {
