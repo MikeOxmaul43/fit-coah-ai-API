@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
+	"sportTrackerAPI/internal/exercise"
 	"sportTrackerAPI/internal/user"
 )
 
@@ -18,4 +19,5 @@ func main() {
 		panic(err)
 	}
 	db.AutoMigrate(&user.User{})
+	db.AutoMigrate(&exercise.Exercise{})
 }
