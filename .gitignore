@@ -1,0 +1,4 @@
+.env
+.idea
+redis-data
+postgres-data
