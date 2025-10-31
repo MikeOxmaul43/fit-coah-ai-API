@@ -6,6 +6,7 @@ import (
 	"sportTrackerAPI/db"
 	"sportTrackerAPI/internal/auth"
 	"sportTrackerAPI/internal/config"
+	"sportTrackerAPI/internal/exercise"
 	"sportTrackerAPI/internal/user"
 	"sportTrackerAPI/redisDb"
 )
@@ -26,14 +27,17 @@ func main() {
 	//Repositories
 	userRepository := user.NewUserRepository(database)
 	authRedisRepository := auth.NewAuthRepository(redisDataBase)
+	exerciseRepository := exercise.NewExerciseRepository(database)
 
 	//Services
 	authService := auth.NewAuthService(userRepository, authRedisRepository)
 	//Handlers
 	authHandler := auth.NewAuthHandler(authService, cfg)
+	exerciseHandler := exercise.NewExerciseHandler(exerciseRepository)
 
 	//RegisterRoutes
 	authHandler.RegisterRoutes(app)
+	exerciseHandler.RegisterRoutes(app)
 
 	err := app.Listen(HttpPort)
 	if err != nil {
