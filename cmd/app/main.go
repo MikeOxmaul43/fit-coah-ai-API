@@ -35,7 +35,7 @@ func main() {
 
 	//Services
 	authService := auth.NewAuthService(userRepository, authRedisRepository)
-	programService := program.NewProgramService(programRepository)
+	programService := program.NewProgramService(programRepository, userRepository)
 
 	//Handlers
 	authHandler := auth.NewAuthHandler(authService, cfg)
