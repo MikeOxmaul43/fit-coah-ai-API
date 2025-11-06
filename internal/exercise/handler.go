@@ -15,12 +15,6 @@ func NewExerciseHandler(repository *Repository) *Handler {
 	return &handler
 }
 
-func (handler *Handler) RegisterRoutes(app *fiber.App) {
-	app.Get("exercise/", handler.GetAll)
-	app.Get("exercise/:muscleGroup", handler.GetByMuscleGroup)
-
-}
-
 func (handler *Handler) GetAll(ctx fiber.Ctx) error {
 	exercises, err := handler.Repository.GetAll()
 	if err != nil {

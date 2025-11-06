@@ -7,7 +7,9 @@ import (
 	"sportTrackerAPI/internal/auth"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/internal/exercise"
+	"sportTrackerAPI/internal/program"
 	"sportTrackerAPI/internal/user"
+	"sportTrackerAPI/pkg/middleware"
 	"sportTrackerAPI/redisDb"
 )
 
@@ -20,6 +22,7 @@ func main() {
 	redisDataBase := redisDb.NewRDb(cfg)
 
 	//Middlewares
+	isAuth := middleware.AuthMiddleware(cfg)
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${ip} ${status} - ${method} ${path} ${latency}\n",
 	}))
@@ -28,16 +31,21 @@ func main() {
 	userRepository := user.NewUserRepository(database)
 	authRedisRepository := auth.NewAuthRepository(redisDataBase)
 	exerciseRepository := exercise.NewExerciseRepository(database)
+	programRepository := program.NewProgramRepository(database)
 
 	//Services
 	authService := auth.NewAuthService(userRepository, authRedisRepository)
+	programService := program.NewProgramService(programRepository)
+
 	//Handlers
 	authHandler := auth.NewAuthHandler(authService, cfg)
 	exerciseHandler := exercise.NewExerciseHandler(exerciseRepository)
+	programHandler := program.NewProgramHandler(programService)
 
 	//RegisterRoutes
-	authHandler.RegisterRoutes(app)
+	authHandler.RegisterRoutes(app, isAuth)
 	exerciseHandler.RegisterRoutes(app)
+	programHandler.RegisterRoutes(app, isAuth)
 
 	err := app.Listen(HttpPort)
 	if err != nil {

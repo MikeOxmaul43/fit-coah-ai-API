@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"sportTrackerAPI/internal/config"
 	"sportTrackerAPI/pkg/Validate"
-	"sportTrackerAPI/pkg/middleware"
 )
 
 type Handler struct {
@@ -20,13 +19,6 @@ func NewAuthHandler(service *Service, config *config.Config) *Handler {
 	return &handler
 }
 
-func (handler *Handler) RegisterRoutes(app *fiber.App) {
-	app.Get("/test", middleware.AuthMiddleware(handler.Config), handler.Test)
-	app.Get("/register", handler.Register)
-	app.Get("/login", handler.Login)
-	app.Get("/refresh", handler.Refresh)
-	app.Get("/logout", middleware.AuthMiddleware(handler.Config), handler.Logout)
-}
 func (handler *Handler) Test(ctx fiber.Ctx) error {
 	return ctx.SendString("HelloWorld")
 }
