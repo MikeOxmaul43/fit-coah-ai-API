@@ -5,7 +5,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
+	"sportTrackerAPI/internal/dayExercise"
 	"sportTrackerAPI/internal/exercise"
+	"sportTrackerAPI/internal/program"
+	"sportTrackerAPI/internal/programDay"
 	"sportTrackerAPI/internal/user"
 )
 
@@ -20,4 +23,7 @@ func main() {
 	}
 	db.AutoMigrate(&user.User{})
 	db.AutoMigrate(&exercise.Exercise{})
+	db.AutoMigrate(&dayExercise.DayExercise{})
+	db.AutoMigrate(&programDay.ProgramDay{})
+	db.AutoMigrate(&program.Program{})
 }
