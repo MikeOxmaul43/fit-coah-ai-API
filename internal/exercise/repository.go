@@ -35,7 +35,7 @@ func (repo *Repository) GetByName(name string) (*Exercise, error) {
 	return &exercise, nil
 }
 
-func (repo *Repository) GetAllByMuscleGroup(muscleGroup string) ([]Exercise, error) {
+func (repo *Repository) GetByMuscleGroup(muscleGroup string) ([]Exercise, error) {
 	var exercises []Exercise
 	result := repo.DataBase.Find(&exercises, "muscle_group = ?", muscleGroup)
 	if result.Error != nil {
