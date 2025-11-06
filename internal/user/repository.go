@@ -1,14 +1,14 @@
 package user
 
 import (
-	pkg "sportTrackerAPI/db"
+	"sportTrackerAPI/db"
 )
 
 type Repository struct {
-	DataBase *pkg.Db
+	DataBase *db.Db
 }
 
-func NewUserRepository(dataBase *pkg.Db) *Repository { return &Repository{DataBase: dataBase} }
+func NewUserRepository(dataBase *db.Db) *Repository { return &Repository{DataBase: dataBase} }
 
 func (repo *Repository) Create(user *User) (*User, error) {
 	result := repo.DataBase.DB.Create(&user)

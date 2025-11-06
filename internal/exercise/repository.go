@@ -1,14 +1,15 @@
 package exercise
 
 import (
-	pkg "sportTrackerAPI/db"
+	"gorm.io/gorm/clause"
+	"sportTrackerAPI/db"
 )
 
 type Repository struct {
-	DataBase *pkg.Db
+	DataBase *db.Db
 }
 
-func NewExerciseRepository(dataBase *pkg.Db) *Repository { return &Repository{DataBase: dataBase} }
+func NewExerciseRepository(dataBase *db.Db) *Repository { return &Repository{DataBase: dataBase} }
 
 func (repo *Repository) GetAll() ([]Exercise, error) {
 	var exercises []Exercise
@@ -19,11 +20,11 @@ func (repo *Repository) GetAll() ([]Exercise, error) {
 	return exercises, nil
 }
 
-func (repo Repository) Update(exercise Exercise) error {
-	return repo.DataBase.DB.Save(exercise).Error
+func (repo *Repository) Update(exercise Exercise) error {
+	return repo.DataBase.DB.Clauses(clause.Returning{}).Updates(exercise).Error
 }
 
-func (repo Repository) Delete(id uint) error {
+func (repo *Repository) Delete(id uint) error {
 	return repo.DataBase.DB.Delete(&Exercise{}, id).Error
 }
 func (repo *Repository) GetByName(name string) (*Exercise, error) {
